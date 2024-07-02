@@ -19,7 +19,6 @@ Sub StockChecker()
     Dim QuarterlyOpen As Variant
     Dim QuarterlyClose As Variant
     Dim Quarter As String
-    Dim PrevQuarter As String
     Dim SummaryRow As Integer
         
     'Loop through each worksheet in the workbook
@@ -29,13 +28,18 @@ Sub StockChecker()
         SheetName = ws.Name
         LastRow = ws.Cells(ws.Rows.Count, 1).End(xlUp).Row
         LastCol = ws.Cells(1, ws.Columns.Count).End(xlToLeft).Column
+                
+        'Write column headings for calculated/aggregated values
+        ws.Cells(1, LastCol + 2).Value = "Ticker"
+        ws.Cells(1, LastCol + 3).Value = "Quarterly Change"
+        ws.Cells(1, LastCol + 4).Value = "Percent Change"
+        ws.Cells(1, LastCol + 5).Value = "TotalStockVolume"
         
         Ticker = ""
         QuarterlyChange = 0
         PercentChange = 0
         TotalStockVolume = 0
         SummaryRow = 2
-        PrevQuarter = ""
         
         'Loop through rows
         For i = 2 To LastRow
@@ -65,35 +69,72 @@ Sub StockChecker()
                 TotalStockVolume = TotalStockVolume + stock_vol
                 QuarterlyClose = stock_close
             Else
-                'Write quarterly summary and reset quarterly variables
-                ws.Cells(SummaryRow, 9).Value = Ticker
+                'Write summary and reset summary variables
+                ws.Cells(SummaryRow, LastCol + 2).Value = Ticker
                 
-                ws.Cells(SummaryRow, 10).Value = QuarterlyClose - QuarterlyOpen
-                ws.Cells(SummaryRow, 10).NumberFormat = "$#,##0.00"
+                ws.Cells(SummaryRow, LastCol + 3).Value = QuarterlyClose - QuarterlyOpen
+                ws.Cells(SummaryRow, LastCol + 3).NumberFormat = "$#,##0.00"
                 
-                ws.Cells(SummaryRow, 11).Value = ((QuarterlyClose - QuarterlyOpen) / QuarterlyOpen)
-                ws.Cells(SummaryRow, 11).NumberFormat = "0.00%"
+                ws.Cells(SummaryRow, LastCol + 4).Value = ((QuarterlyClose - QuarterlyOpen) / QuarterlyOpen)
+                ws.Cells(SummaryRow, LastCol + 4).NumberFormat = "0.00%"
                 
-                If ws.Cells(SummaryRow, 11).Value > 0 Then
-                    ws.Cells(SummaryRow, 11).Interior.Color = vbGreen
-                ElseIf ws.Cells(SummaryRow, 11).Value < 0 Then
-                    ws.Cells(SummaryRow, 11).Interior.Color = vbRed
+                If ws.Cells(SummaryRow, LastCol + 4).Value > 0 Then
+                    ws.Cells(SummaryRow, LastCol + 4).Interior.Color = vbGreen
+                ElseIf ws.Cells(SummaryRow, LastCol + 4).Value < 0 Then
+                    ws.Cells(SummaryRow, LastCol + 4).Interior.Color = vbRed
                 End If
                 
-                ws.Cells(SummaryRow, 12).Value = TotalStockVolume
-                ws.Cells(SummaryRow, 12).NumberFormat = "#,##0"
+                ws.Cells(SummaryRow, LastCol + 5).Value = TotalStockVolume
+                ws.Cells(SummaryRow, LastCol + 5).NumberFormat = "#,##0"
                 
-                ws.Cells(SummaryRow, 14).Value = QuarterlyOpen
-                ws.Cells(SummaryRow, 15).Value = QuarterlyClose
-                
-                'reset quarterly variables
+                'Reset summary variables
                 SummaryRow = SummaryRow + 1
                 Ticker = ""
                 QuarterlyChange = 0
                 PercentChange = 0
                 TotalStockVolume = 0
-                PrevQuarter = Quarter
             End If
         Next i
+        
+        Dim VolumeRange As Range
+        Dim ChangeRange As Range
+        Dim MaxStockVolume As Variant
+        Dim MinStockChange As Variant
+        Dim MaxStockChange As Variant
+        Dim MaxStockRow As Variant
+        Dim MinChangeRow As Variant
+        Dim MaxChangeRow As Variant
+        
+        
+        ' Set the range to find the aggregated values
+        Set VolumeRange = Range("L2:L" & ws.Cells(ws.Rows.Count, 12).End(xlUp).Row)
+        Set ChangeRange = Range("K2:K" & ws.Cells(ws.Rows.Count, 11).End(xlUp).Row)
+        ' Find the maximum value in the range using the aggregation functions
+        MaxStockVolume = Application.WorksheetFunction.Max(VolumeRange)
+        MinStockChange = Application.WorksheetFunction.Min(ChangeRange)
+        MaxStockChange = Application.WorksheetFunction.Max(ChangeRange)
+        ' Find the row from the results of the matching aggregation
+        MaxStockRow = Application.Match(MaxStockVolume, ws.Columns(12), 0)
+        MinChangeRow = Application.Match(MinStockChange, ws.Columns(11), 0)
+        MaxChangeRow = Application.Match(MaxStockChange, ws.Columns(11), 0)
+        
+        ws.Range("P1").Value = "Ticker"
+        ws.Range("Q1").Value = "Value"
+        
+        ws.Range("O2").Value = "Greatest % increase"
+        ws.Range("P2").Value = ws.Range("I" & MaxChangeRow)
+        ws.Range("Q2").Value = MaxStockChange
+        ws.Range("Q2").NumberFormat = "0.00%"
+        
+        ws.Range("O3").Value = "Greatest % decrease"
+        ws.Range("P3").Value = ws.Range("I" & MinChangeRow)
+        ws.Range("Q3").Value = MinStockChange
+        ws.Range("Q3").NumberFormat = "0.00%"
+        
+        ws.Range("O4").Value = "Greatest total volume"
+        ws.Range("P4").Value = ws.Range("I" & MaxStockRow)
+        ws.Range("Q4").Value = MaxStockVolume
+        ws.Range("Q4").NumberFormat = "#,##0"
+        Exit For
     Next ws
 End Sub
