@@ -11,7 +11,7 @@ Sub StockChecker()
     Dim LastRow As Long
     Dim LastCol As Long
     
-    'Declare variables to write quarterly summaries
+    'Declare variables to write summary
     Dim Ticker As String
     Dim QuarterlyChange As Variant
     Dim PercentChange As Variant
@@ -28,7 +28,7 @@ Sub StockChecker()
         SheetName = ws.Name
         LastRow = ws.Cells(ws.Rows.Count, 1).End(xlUp).Row
         LastCol = ws.Cells(1, ws.Columns.Count).End(xlToLeft).Column
-                
+         
         'Write column headings for calculated/aggregated values
         ws.Cells(1, LastCol + 2).Value = "Ticker"
         ws.Cells(1, LastCol + 3).Value = "Quarterly Change"
@@ -96,6 +96,7 @@ Sub StockChecker()
             End If
         Next i
         
+        'Declare variables for aggregate functions
         Dim VolumeRange As Range
         Dim ChangeRange As Range
         Dim MaxStockVolume As Variant
