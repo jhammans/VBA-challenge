@@ -20,6 +20,16 @@ Sub StockChecker()
     Dim QuarterlyClose As Variant
     Dim Quarter As String
     Dim SummaryRow As Integer
+
+    'Declare variables for aggregate functions
+    Dim VolumeRange As Range
+    Dim ChangeRange As Range
+    Dim MaxStockVolume As Variant
+    Dim MinStockChange As Variant
+    Dim MaxStockChange As Variant
+    Dim MaxStockRow As Variant
+    Dim MinChangeRow As Variant
+    Dim MaxChangeRow As Variant
         
     'Loop through each worksheet in the workbook
     For Each ws In Worksheets
@@ -96,20 +106,9 @@ Sub StockChecker()
             End If
         Next i
         
-        'Declare variables for aggregate functions
-        Dim VolumeRange As Range
-        Dim ChangeRange As Range
-        Dim MaxStockVolume As Variant
-        Dim MinStockChange As Variant
-        Dim MaxStockChange As Variant
-        Dim MaxStockRow As Variant
-        Dim MinChangeRow As Variant
-        Dim MaxChangeRow As Variant
-        
-        
         ' Set the range to find the aggregated values
-        Set VolumeRange = Range("L2:L" & ws.Cells(ws.Rows.Count, 12).End(xlUp).Row)
-        Set ChangeRange = Range("K2:K" & ws.Cells(ws.Rows.Count, 11).End(xlUp).Row)
+        Set VolumeRange = ws.Range("L2:L" & ws.Cells(ws.Rows.Count, 12).End(xlUp).Row)
+        Set ChangeRange = ws.Range("K2:K" & ws.Cells(ws.Rows.Count, 11).End(xlUp).Row)
         ' Find the maximum value in the range using the aggregation functions
         MaxStockVolume = Application.WorksheetFunction.Max(VolumeRange)
         MinStockChange = Application.WorksheetFunction.Min(ChangeRange)
@@ -136,6 +135,5 @@ Sub StockChecker()
         ws.Range("P4").Value = ws.Range("I" & MaxStockRow)
         ws.Range("Q4").Value = MaxStockVolume
         ws.Range("Q4").NumberFormat = "#,##0"
-        Exit For
     Next ws
 End Sub
